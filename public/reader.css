@@ -2725,6 +2725,15 @@ body.settings-open { overflow: hidden; }
 .settings-form label { display: grid; gap: 8px; color: var(--muted); font-size: 13px; font-weight: 800; }
 .settings-form input { width: 100%; min-height: 48px; border: 1px solid var(--line); border-radius: 15px; padding: 0 14px; background: color-mix(in srgb, var(--theme-paper-2) 84%, transparent); color: var(--text); font: inherit; outline: none; }
 .settings-form input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.app-icon-field { display: grid; grid-template-columns: 82px minmax(0, 1fr); align-items: center; gap: 15px; border: 1px solid var(--line); border-radius: 19px; padding: 13px; background: color-mix(in srgb, var(--theme-paper-2) 72%, transparent); }
+.app-icon-field img { width: 82px; height: 82px; border-radius: 20px; object-fit: cover; background: var(--theme-paper-2); box-shadow: 0 8px 22px rgba(35, 27, 22, 0.13); }
+.app-icon-copy { display: grid; gap: 5px; min-width: 0; }
+.app-icon-copy strong { color: var(--text); font-size: 14px; }
+.app-icon-copy small { color: var(--muted); font-size: 11px; line-height: 1.5; }
+.app-icon-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 5px; }
+.app-icon-upload { display: inline-flex !important; width: auto !important; min-height: 40px; align-items: center; justify-content: center; padding: 0 14px; color: var(--text) !important; font-size: 12px !important; cursor: pointer; }
+.app-icon-upload input { display: none; }
+.app-icon-actions .secondary-button { min-height: 40px; font-size: 12px; }
 .settings-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 .settings-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 4px; }
 .theme-picker { position: fixed; z-index: 90; inset: 0; display: grid; place-items: center; padding: max(20px, env(safe-area-inset-top)) 18px max(20px, env(safe-area-inset-bottom)); }
@@ -2759,6 +2768,8 @@ body.settings-open { overflow: hidden; }
   .settings-panel { align-items: end; padding-inline: 0; padding-bottom: 0; }
   .settings-sheet { width: 100%; max-height: min(88svh, 760px); border-radius: 28px 28px 0 0; padding: 22px 18px calc(24px + env(safe-area-inset-bottom)); }
   .settings-grid { grid-template-columns: 1fr; }
+  .app-icon-field { grid-template-columns: 68px minmax(0, 1fr); }
+  .app-icon-field img { width: 68px; height: 68px; border-radius: 17px; }
   .library-note-controls { grid-template-columns: 1fr; }
   html[data-theme="rabbit"] .library-book-annotations { grid-template-columns: 1fr; }
   html[data-theme="duo"] .passage-voices { grid-template-columns: 1fr; }

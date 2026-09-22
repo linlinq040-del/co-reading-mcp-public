@@ -15,8 +15,8 @@
         document.documentElement.dataset.theme = allowed.has(saved) ? saved : "rabbit";
       })();
     </script>
-    <link rel="icon" type="image/svg+xml" href="/app-icon.svg" />
-    <link rel="apple-touch-icon" sizes="180x180" href="/app-icon.png" />
+    <link rel="icon" type="image/png" href="/app-icon.png?v=default" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/app-icon.png?v=default" />
     <link rel="stylesheet" href="/reader.css?v=public-v1" />
   </head>
   <body>
@@ -230,6 +230,20 @@
             <span>欢迎语</span>
             <input id="setting-welcome-text" name="welcomeText" maxlength="80" required placeholder="把喜欢的句子，留在同一页里。" />
           </label>
+          <div class="app-icon-field">
+            <img id="setting-app-icon-preview" src="/app-icon.png?v=default" alt="应用图标预览" />
+            <div class="app-icon-copy">
+              <strong>应用图标</strong>
+              <small>会显示在浏览器、Aru Apps 和 Dock。图片会自动裁成正方形。</small>
+              <div class="app-icon-actions">
+                <label class="secondary-button app-icon-upload">
+                  选择图片
+                  <input id="setting-app-icon" type="file" accept="image/png,image/jpeg,image/webp" />
+                </label>
+                <button id="reset-app-icon" class="secondary-button" type="button">恢复默认</button>
+              </div>
+            </div>
+          </div>
           <div class="settings-actions">
             <button id="settings-cancel" class="secondary-button" type="button">取消</button>
             <button class="primary-button" type="submit">保存并进入</button>

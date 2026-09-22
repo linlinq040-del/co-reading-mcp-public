@@ -52,8 +52,12 @@ const state = {
     readerName: "我",
     partnerName: "共读伙伴",
     welcomeText: "把喜欢的句子，留在同一页里。",
+    customAppIcon: false,
+    appIconVersion: "default",
   },
 };
+
+let pendingAppIconDataUrl = null;
 
 const $ = (id) => document.getElementById(id);
 const splashStartedAt = performance.now();
@@ -97,6 +101,20 @@ function partnerName() {
   return state.config.partnerName || "共读伙伴";
 }
 
+function appIconUrl(config = state.config) {
+  return `/app-icon.png?v=${encodeURIComponent(config.appIconVersion || "default")}`;
+}
+
+function applyAppIcon(config = state.config) {
+  const url = appIconUrl(config);
+  document.querySelectorAll('link[rel="icon"], link[rel="apple-touch-icon"]').forEach((link) => {
+    link.href = url;
+  });
+  if (!pendingAppIconDataUrl && $("setting-app-icon-preview")) {
+    $("setting-app-icon-preview").src = url;
+  }
+}
+
 function applyRoomConfig(config) {
   state.config = { ...state.config, ...config };
   document.title = `${state.config.roomName} · 共读`;
@@ -107,6 +125,7 @@ function applyRoomConfig(config) {
   $("inbox-partner-name").textContent = partnerName();
   $("partner-inbox-toggle").title = `查看${partnerName()}的最新回复`;
   $("partner-inbox").setAttribute("aria-label", `${partnerName()}最新回复`);
+  applyAppIcon(state.config);
 }
 
 function fillSettingsForm() {
@@ -114,6 +133,40 @@ function fillSettingsForm() {
   $("setting-reader-name").value = state.config.readerName;
   $("setting-partner-name").value = state.config.partnerName;
   $("setting-welcome-text").value = state.config.welcomeText;
+  pendingAppIconDataUrl = null;
+  $("setting-app-icon").value = "";
+  $("setting-app-icon-preview").src = appIconUrl();
+}
+
+function imageElementFromFile(file) {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    const url = URL.createObjectURL(file);
+    image.onload = () => {
+      URL.revokeObjectURL(url);
+      resolve(image);
+    };
+    image.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error("无法读取这张图片，请换一张 PNG、JPEG 或 WebP"));
+    };
+    image.src = url;
+  });
+}
+
+async function squareAppIconDataUrl(file) {
+  if (!file?.type?.startsWith("image/")) throw new Error("请选择一张图片");
+  if (file.size > 10_000_000) throw new Error("原图不能超过 10 MB");
+  const image = await imageElementFromFile(file);
+  const size = Math.min(image.naturalWidth, image.naturalHeight);
+  const sx = Math.max(0, (image.naturalWidth - size) / 2);
+  const sy = Math.max(0, (image.naturalHeight - size) / 2);
+  const canvas = document.createElement("canvas");
+  canvas.width = 512;
+  canvas.height = 512;
+  const context = canvas.getContext("2d");
+  context.drawImage(image, sx, sy, size, size, 0, 0, 512, 512);
+  return canvas.toDataURL("image/png");
 }
 
 function setSettingsPanel(open, { required = false } = {}) {
@@ -1904,11 +1957,47 @@ document.querySelectorAll("[data-close-settings], #settings-cancel").forEach((bu
     setSettingsPanel(false);
   });
 });
+$("setting-app-icon").addEventListener("change", async (event) => {
+  const file = event.target.files?.[0];
+  if (!file) return;
+  try {
+    pendingAppIconDataUrl = await squareAppIconDataUrl(file);
+    $("setting-app-icon-preview").src = pendingAppIconDataUrl;
+  } catch (error) {
+    pendingAppIconDataUrl = null;
+    event.target.value = "";
+    showError(error);
+  }
+});
+$("reset-app-icon").addEventListener("click", async () => {
+  if (!confirm("恢复公开版默认图标？")) return;
+  const button = $("reset-app-icon");
+  button.disabled = true;
+  try {
+    const config = await api("/api/app-icon", { method: "DELETE" });
+    pendingAppIconDataUrl = null;
+    applyRoomConfig(config);
+    fillSettingsForm();
+    showToast("已经恢复默认应用图标");
+  } catch (error) {
+    showError(error);
+  } finally {
+    button.disabled = false;
+  }
+});
 $("settings-form").addEventListener("submit", async (event) => {
   event.preventDefault();
   const submitButton = event.currentTarget.querySelector("button[type='submit']");
   submitButton.disabled = true;
   try {
+    let iconConfig = null;
+    if (pendingAppIconDataUrl) {
+      iconConfig = await api("/api/app-icon", {
+        method: "PUT",
+        body: { dataUrl: pendingAppIconDataUrl },
+      });
+      pendingAppIconDataUrl = null;
+    }
     const config = await api("/api/config", {
       method: "PUT",
       body: {
@@ -1918,7 +2007,7 @@ $("settings-form").addEventListener("submit", async (event) => {
         welcomeText: $("setting-welcome-text").value,
       },
     });
-    applyRoomConfig(config);
+    applyRoomConfig(iconConfig ? { ...config, ...iconConfig } : config);
     state.replyInboxSignature = "";
     state.libraryNotesRenderSignature = "";
     renderReplyInbox();
