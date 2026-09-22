@@ -1,0 +1,10 @@
+{
+  "bookId": "shared-reading-guide",
+  "title": "开始共读",
+  "author": "共读空间",
+  "source": "built-in-example",
+  "chunks": [
+    { "id": "ch00", "title": "欢迎来到共读空间", "sectionTitle": "欢迎来到共读空间", "order": 0, "path": "chunks/ch00.txt" },
+    { "id": "ch01", "title": "从这一页开始", "sectionTitle": "从这一页开始", "order": 1, "path": "chunks/ch01.txt" }
+  ]
+}
