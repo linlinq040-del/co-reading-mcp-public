@@ -1,4 +1,11 @@
 # Co-Reading MCP · Public Edition
+❤️ Original Project & Attribution
+
+This project is based on idleprocesscc/co-reading-mcp⁠￼.
+
+Original creator: Xiaohongshu @stray_photon
+
+Many thanks to the original creator for developing and open-sourcing this project. Copyright in the original project remains with its original creator. This repository is a generalized public edition built upon the original work. Please preserve this attribution and the link to the original repository when forking or redistributing it.
 
 A customizable MCP reading room for any AI assistant:
 
