@@ -630,6 +630,15 @@ const httpDeletedProgress = await fetchJson("/api/progress?bookId=http-import");
 const httpDeletedAnnotations = await fetchJson("/api/annotations?bookId=http-import");
 const httpDeletedCards = await fetchJson("/api/cards?bookId=http-import");
 const readerHtml = await fetch(`http://127.0.0.1:${httpPort}/`);
+const defaultAppIcon = await fetch(`http://127.0.0.1:${httpPort}/app-icon.png`);
+const customIconConfig = await fetchJson("/api/app-icon", {
+  method: "PUT",
+  body: {
+    dataUrl: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
+  },
+});
+const customAppIcon = await fetch(`http://127.0.0.1:${httpPort}/app-icon.png?v=${customIconConfig.appIconVersion}`);
+const resetIconConfig = await fetchJson("/api/app-icon", { method: "DELETE" });
 httpServer.kill();
 const ssePort = httpPort + 1;
 const sseServer = spawn(process.execPath, [path.join(root, "src/server-sse.js")], {
@@ -712,6 +721,7 @@ const sseReaderAuthorized = await fetch(`http://127.0.0.1:${ssePort}/`, {
 const sseCssWithCookie = await fetch(`http://127.0.0.1:${ssePort}/reader.css`, {
   headers: { cookie: sseCookie },
 });
+const ssePublicAppIcon = await fetch(`http://127.0.0.1:${ssePort}/app-icon.png`);
 const sseApiUnauthorized = await fetch(`http://127.0.0.1:${ssePort}/api/books`);
 const sseUnauthorizedMcp = await fetch(`http://127.0.0.1:${ssePort}/mcp`);
 const sseMetadata = await fetch(`http://127.0.0.1:${ssePort}/.well-known/oauth-protected-resource/mcp`);
@@ -925,6 +935,12 @@ if (httpDeletedProgress !== null || httpDeletedAnnotations.length !== 0 || httpD
 if (!readerHtml.ok || !(await readerHtml.text()).includes("Co-Reading")) {
   throw new Error("HTTP reader did not serve the web UI");
 }
+if (!defaultAppIcon.ok || defaultAppIcon.headers.get("content-type") !== "image/png") {
+  throw new Error("HTTP reader did not serve the default app icon");
+}
+if (!customIconConfig.customAppIcon || !customAppIcon.ok || resetIconConfig.customAppIcon !== false) {
+  throw new Error("HTTP reader did not save or reset the custom app icon");
+}
 if (sseReaderHtml.status !== 401) {
   throw new Error("SSE process did not protect reader UI with MCP_AUTH_TOKEN");
 }
@@ -936,6 +952,9 @@ if (!sseReaderAuthorized.ok || !(await sseReaderAuthorized.text()).includes("Co-
 }
 if (!sseCookie.includes("co_reading_token=") || !sseCssWithCookie.ok) {
   throw new Error("SSE process did not set a reader auth cookie for static assets");
+}
+if (!ssePublicAppIcon.ok || ssePublicAppIcon.headers.get("content-type") !== "image/png") {
+  throw new Error("SSE process did not expose the app icon without authentication");
 }
 if (sseApiUnauthorized.status !== 401) {
   throw new Error("SSE process did not protect REST API with MCP_AUTH_TOKEN");
