@@ -1,0 +1,2 @@
+{"id":"ann_guide_assistant_001","bookId":"shared-reading-guide","chunkId":"ch00","quote":"让两种目光在同一页上相遇","note":"这里是一条由 AI 共读伙伴留下的示例批注。","author":"assistant","kind":"annotation","mood":"curious","tags":["demo"],"status":"published","parentId":null,"createdAt":"2026-05-22T00:00:00.000Z"}
+{"id":"ann_guide_user_001","bookId":"shared-reading-guide","chunkId":"ch00","quote":"所有新生成的伙伴批注统一使用 author: assistant","note":"这是一条等待发送给共读伙伴的示例批注。","author":"user","kind":"annotation","mood":"quiet","tags":["demo"],"status":"open","parentId":null,"createdAt":"2026-05-22T00:01:00.000Z"}
