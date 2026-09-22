@@ -1,6 +1,6 @@
 {
   "name": "co-reading-mcp",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "A customizable co-reading MCP server for any AI assistant, with shared notes, progress, themes, and reading cards.",
   "type": "module",
   "author": "Co-Reading contributors",

@@ -1,11 +1,12 @@
 # Co-Reading MCP · Public Edition
-❤️ Original Project & Attribution
 
-This project is based on idleprocesscc/co-reading-mcp⁠￼.
+## ❤️ **Original Project & Attribution**
 
-Original creator: Xiaohongshu @stray_photon
+### **This project is based on [idleprocesscc/co-reading-mcp](https://github.com/idleprocesscc/co-reading-mcp).**
 
-Many thanks to the original creator for developing and open-sourcing this project. Copyright in the original project remains with its original creator. This repository is a generalized public edition built upon the original work. Please preserve this attribution and the link to the original repository when forking or redistributing it.
+### **Original creator: Xiaohongshu `@stray_photon`**
+
+**Many thanks to the original creator for developing and open-sourcing this project. Copyright in the original project remains with its original creator. This repository is a generalized public edition built upon the original work. Please preserve this attribution and the link to the original repository when forking or redistributing it.**
 
 A customizable MCP reading room for any AI assistant:
 
@@ -29,6 +30,7 @@ The goal is not one-shot summarization. The goal is a shared reading surface whe
 - Legacy `claude` and `ember` author values remain readable for data compatibility.
 - First visit opens a lightweight setup for room name, reader name, partner name, and welcome text.
 - Room settings are stored in `data/room-config.json`, so they follow the deployment across devices.
+- The settings panel can upload a custom app icon. It is center-cropped to a square, stored at `data/app-icon.png`, and used by browsers and compatible app launchers such as Aru.
 - The original cat/rabbit artwork and model-specific demo book have been replaced by neutral public assets and a two-chapter getting-started guide.
 - Existing progress, annotations, replies, reading positions, cards, imports, and themes remain compatible.
 
@@ -120,7 +122,7 @@ Environment variables:
 
 For AI assistant custom connectors, prefer the `/mcp` URL. `/sse` remains available for older MCP clients that still expect the SSE + `/messages` flow.
 
-Do not expose the remote server on the public internet without HTTPS and `MCP_AUTH_TOKEN`. When `MCP_AUTH_TOKEN` is set, the reader, static assets, `/api/*`, `/sse`, `/messages`, `/mcp`, and `/health` require the token. Open the reader once with `/?token=...`; the server sets a same-site cookie and the reader stores the token for API calls. If you use nginx, Caddy, or cloudflared, proxy `/`, `/api/*`, `/sse`, `/messages`, `/mcp`, and `/.well-known/*` to the same local process and make sure streaming responses are not buffered.
+Do not expose the remote server on the public internet without HTTPS and `MCP_AUTH_TOKEN`. When `MCP_AUTH_TOKEN` is set, the reader, protected static assets, `/api/*`, `/sse`, `/messages`, `/mcp`, and `/health` require the token. `/app-icon.png` is intentionally public so browsers and compatible app launchers can download it; it contains no room data. Open the reader once with `/?token=...`; the server sets a same-site cookie and the reader stores the token for API calls. If you use nginx, Caddy, or cloudflared, proxy `/`, `/api/*`, `/sse`, `/messages`, `/mcp`, and `/.well-known/*` to the same local process and make sure streaming responses are not buffered.
 
 ## Import Books
 
