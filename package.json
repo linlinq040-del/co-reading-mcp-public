@@ -1,0 +1,47 @@
+{
+  "name": "co-reading-mcp",
+  "version": "0.2.0",
+  "description": "A customizable co-reading MCP server for any AI assistant, with shared notes, progress, themes, and reading cards.",
+  "type": "module",
+  "author": "Co-Reading contributors",
+  "files": [
+    ".env.example",
+    "src",
+    "public",
+    "scripts/import_epub.py",
+    "scripts/import_text.py",
+    "scripts/smoke.mjs",
+    "scripts/card-smoke.mjs",
+    "docs",
+    "data.example",
+    "README.md",
+    "LICENSE"
+  ],
+  "bin": {
+    "co-reading-mcp": "./src/server.js",
+    "co-reading-reader": "./src/http.js",
+    "co-reading-sse": "./src/server-sse.js"
+  },
+  "scripts": {
+    "start": "node src/server-sse.js",
+    "start:stdio": "node src/server.js",
+    "reader": "node src/http.js",
+    "start:sse": "node src/server-sse.js",
+    "smoke": "node scripts/smoke.mjs",
+    "smoke:cards": "node scripts/card-smoke.mjs",
+    "import:text": "python3 scripts/import_text.py",
+    "import:epub": "python3 scripts/import_epub.py",
+    "install:card-renderer": "npx playwright install chromium"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "mcp",
+    "reading",
+    "annotations",
+    "epub",
+    "ai-assistant"
+  ],
+  "license": "MIT"
+}
