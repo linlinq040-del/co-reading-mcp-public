@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f6f0e6" />
+    <title>共读书房</title>
+    <script>
+      (() => {
+        const allowed = new Set(["blackcat", "rabbit", "duo", "forest", "berry", "ocean", "bookshop"]);
+        let saved = null;
+        try {
+          saved = localStorage.getItem("co-reading-theme");
+        } catch {}
+        document.documentElement.dataset.theme = allowed.has(saved) ? saved : "rabbit";
+      })();
+    </script>
+    <link rel="icon" type="image/svg+xml" href="/app-icon.svg" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/app-icon.png" />
+    <link rel="stylesheet" href="/reader.css?v=public-v1" />
+  </head>
+  <body>
+    <div id="splash" class="splash-screen" role="status" aria-live="polite">
+      <div class="splash-paper">
+        <div class="splash-art-wrap public-splash-art" aria-hidden="true">
+          <span class="public-book-emblem">⌁</span>
+          <span class="splash-star star-one">✦</span>
+          <span class="splash-star star-two">·</span>
+        </div>
+        <p class="splash-kicker">SHARED READING SPACE</p>
+        <h1 id="splash-room-name" class="splash-title">共读空间</h1>
+        <p class="splash-copy">正在翻到上次读过的那一页</p>
+        <div class="page-loader" aria-hidden="true"><i></i><i></i><i></i></div>
+      </div>
+    </div>
+    <main class="app">
+      <section class="sidebar" aria-label="Library">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">Co-Reading · SHARED READING SPACE</p>
+            <h1 id="room-name">共读空间</h1>
+            <p id="welcome-note" class="welcome-note">把喜欢的句子，留在同一页里。</p>
+          </div>
+          <div class="topbar-actions">
+            <button class="icon-button" type="button" data-open-theme-picker title="一键换肤">◐</button>
+            <button id="open-settings" class="icon-button" type="button" title="空间设置">⚙</button>
+            <button id="import-book" class="icon-button" title="导入 EPUB、TXT 或 Markdown">＋</button>
+            <button id="refresh" class="icon-button" title="刷新书架">↻</button>
+          </div>
+          <input id="import-file" type="file" accept=".epub,.txt,.text,.md,.markdown" multiple hidden />
+        </header>
+        <button id="open-library-notes" class="annotation-home-entry" type="button">
+          <span class="annotation-home-icon">✦</span>
+          <span>
+            <strong>共读手札</strong>
+            <small id="notes-entry-copy">你和共读伙伴留在书页旁的话</small>
+          </span>
+          <span class="annotation-home-arrow">›</span>
+        </button>
+        <div id="books" class="books" aria-live="polite"></div>
+        <section id="library-notes" class="library-notes" hidden>
+          <header class="library-notes-head">
+            <div class="library-notes-title-row">
+              <div>
+                <p class="eyebrow">SHARED MARGINS</p>
+                <h2>共读手札</h2>
+              </div>
+              <button id="close-library-notes" class="icon-button" type="button" aria-label="返回书架">×</button>
+            </div>
+            <div class="library-note-controls">
+              <label class="library-note-search">
+                <span>⌕</span>
+                <input id="library-note-search" type="search" placeholder="搜索原文或批注……" autocomplete="off" />
+              </label>
+              <select id="library-note-book-filter" class="library-note-book-filter" aria-label="按书筛选">
+                <option value="">全部书籍</option>
+              </select>
+              <button class="library-theme-button" type="button" data-open-theme-picker>◐ 换肤</button>
+            </div>
+          </header>
+          <div id="library-notes-list" class="library-notes-list"></div>
+        </section>
+      </section>
+
+      <section class="chapters" aria-label="Chapters">
+        <header class="panel-head">
+          <button id="back-to-library" class="mobile-back" type="button">← 书架</button>
+          <div>
+            <p id="book-meta" class="eyebrow">选择一本书</p>
+            <h2 id="book-title">章节目录</h2>
+          </div>
+        </header>
+        <div id="chunks" class="chunk-list"></div>
+      </section>
+
+      <section class="reader" aria-label="Reader">
+        <header class="reader-head">
+          <div>
+            <button id="back-to-chapters" class="mobile-back" type="button">← 目录</button>
+            <p id="chunk-file" class="eyebrow">尚未选择章节</p>
+            <h2 id="chunk-title">翻开一章，开始共读</h2>
+          </div>
+          <div class="reader-actions">
+            <button class="secondary-button" type="button" data-open-theme-picker>◐ 换肤</button>
+            <button id="partner-inbox-toggle" class="secondary-button partner-inbox-toggle" type="button" aria-expanded="false" aria-controls="partner-inbox" title="查看共读伙伴的最新回复">
+              <svg class="partner-inbox-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <rect x="2.75" y="4.75" width="18.5" height="14.5" rx="4"></rect>
+                <path d="m5.5 8 6.5 4.8L18.5 8"></path>
+              </svg>
+              <span class="partner-inbox-label">回信</span>
+              <span id="partner-inbox-count" class="partner-inbox-count" hidden>0</span>
+            </button>
+            <button id="show-card" class="secondary-button" disabled>书签</button>
+            <button id="continue-reading" class="secondary-button" disabled>继续阅读</button>
+            <button id="mark-read" class="secondary-button" disabled>读完本章</button>
+          </div>
+        </header>
+
+        <article id="text" class="text">
+          <p class="empty">先选择一本书和章节。长按选中文字，就能留下只属于你们的页边话。</p>
+        </article>
+
+        <nav id="page-turner" class="page-turner" aria-label="翻页">
+          <button id="page-prev" type="button" class="page-turn-button page-prev" aria-label="上一组书页">‹</button>
+          <span id="page-number" class="page-number">1 / 1</span>
+          <button id="page-next" type="button" class="page-turn-button page-next" aria-label="下一组书页">›</button>
+        </nav>
+
+        <aside id="margins" class="margins" aria-label="Margin notes"></aside>
+
+        <form id="note-form" class="note-form" hidden>
+          <div class="quote-preview" id="quote-preview"></div>
+          <textarea id="note" rows="3" placeholder="写下此刻想到的话……"></textarea>
+          <div class="form-actions">
+            <button type="button" id="cancel-note" class="secondary-button">取消</button>
+            <button type="submit" class="primary-button">收进页边</button>
+          </div>
+        </form>
+
+        <button id="tools-toggle" class="tools-toggle" type="button" aria-expanded="false" aria-controls="reading-tools" title="打开批注工具">
+          <span class="tools-glyph">✎</span>
+          <span id="tools-count" class="tools-count" hidden>0</span>
+        </button>
+
+        <aside id="partner-inbox" class="partner-inbox" hidden aria-label="共读伙伴最新回复">
+          <header class="partner-inbox-head">
+            <div>
+              <p class="eyebrow">NEW REPLIES</p>
+              <h2><span id="inbox-partner-name">共读伙伴</span>的新回信</h2>
+            </div>
+            <button id="partner-inbox-close" class="icon-button" type="button" aria-label="关闭回信">×</button>
+          </header>
+          <div id="partner-inbox-list" class="partner-inbox-list"></div>
+        </aside>
+
+        <footer id="reading-tools" class="submitbar" aria-hidden="true">
+          <span id="status">你的笔记会先安静地留在这里。</span>
+          <div class="submit-actions">
+            <button id="note-selection" class="secondary-button" disabled>批注选中文字</button>
+            <button id="submit-notes" class="primary-button" disabled>发送给伙伴</button>
+            <button id="tools-close" class="tools-close" type="button" aria-label="收起批注工具">×</button>
+          </div>
+        </footer>
+
+        <div id="toast" class="toast" hidden></div>
+
+        <aside id="card-panel" class="card-panel" hidden aria-label="Reading card">
+          <div class="card-panel-head">
+            <div>
+              <p class="eyebrow">Ritual Card</p>
+              <h2>Shared trace</h2>
+            </div>
+            <button id="card-close" class="icon-button" title="Close">×</button>
+          </div>
+          <div id="card-preview" class="card-preview"></div>
+          <div class="card-actions">
+            <button id="card-random" class="secondary-button">Another version</button>
+          </div>
+        </aside>
+      </section>
+    </main>
+    <aside id="theme-picker" class="theme-picker" hidden aria-label="选择共读书房主题">
+      <button class="theme-picker-backdrop" type="button" data-close-theme-picker aria-label="关闭换肤面板"></button>
+      <section class="theme-picker-sheet" role="dialog" aria-modal="true" aria-labelledby="theme-picker-title">
+        <header class="theme-picker-head">
+          <div>
+            <p class="eyebrow">ONE-TAP SKIN</p>
+            <h2 id="theme-picker-title">给书房换一套衣服</h2>
+          </div>
+          <button class="icon-button" type="button" data-close-theme-picker aria-label="关闭">×</button>
+        </header>
+        <div class="theme-options">
+          <button class="theme-option" type="button" data-theme-choice="blackcat"><span class="theme-preview blackcat-preview"><i></i><i></i><i></i></span><span><strong>🌙 午夜墨色</strong><small>安静的深色阅读</small></span><b>✓</b></button>
+          <button class="theme-option" type="button" data-theme-choice="rabbit"><span class="theme-preview rabbit-preview"><i></i><i></i><i></i></span><span><strong>📖 奶油纸张</strong><small>柔软明亮的书页</small></span><b>✓</b></button>
+          <button class="theme-option" type="button" data-theme-choice="duo"><span class="theme-preview duo-preview"><i></i><i></i><i></i></span><span><strong>🌆 暮色相拥</strong><small>两个人的黄昏</small></span><b>✓</b></button>
+          <button class="theme-option" type="button" data-theme-choice="forest"><span class="theme-preview forest-preview"><i></i><i></i><i></i></span><span><strong>🌿 森林邮局</strong><small>压花与绿色邮戳</small></span><b>✓</b></button>
+          <button class="theme-option" type="button" data-theme-choice="berry"><span class="theme-preview berry-preview"><i></i><i></i><i></i></span><span><strong>🍓 草莓手账</strong><small>贴纸拼贴日记</small></span><b>✓</b></button>
+          <button class="theme-option" type="button" data-theme-choice="ocean"><span class="theme-preview ocean-preview"><i></i><i></i><i></i></span><span><strong>🍵 青瓷茶室</strong><small>宣纸与温润瓷色</small></span><b>✓</b></button>
+          <button class="theme-option" type="button" data-theme-choice="bookshop"><span class="theme-preview bookshop-preview"><i></i><i></i><i></i></span><span><strong>🕯️ 旧书店</strong><small>活字与蜡封信笺</small></span><b>✓</b></button>
+        </div>
+      </section>
+    </aside>
+    <aside id="settings-panel" class="settings-panel" hidden aria-label="共读空间设置">
+      <button class="settings-backdrop" type="button" data-close-settings aria-label="关闭设置"></button>
+      <section class="settings-sheet" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+        <header class="settings-head">
+          <div>
+            <p id="settings-kicker" class="eyebrow">FIRST VISIT</p>
+            <h2 id="settings-title">布置你的共读空间</h2>
+          </div>
+          <button class="icon-button" type="button" data-close-settings aria-label="关闭">×</button>
+        </header>
+        <p class="settings-copy">名称会同步到所有设备，也会替换界面里写死的平台名。</p>
+        <form id="settings-form" class="settings-form">
+          <label>
+            <span>空间名称</span>
+            <input id="setting-room-name" name="roomName" maxlength="48" required placeholder="例如：周末共读小屋" />
+          </label>
+          <div class="settings-grid">
+            <label>
+              <span>你的昵称</span>
+              <input id="setting-reader-name" name="readerName" maxlength="24" required placeholder="例如：我" />
+            </label>
+            <label>
+              <span>共读伙伴昵称</span>
+              <input id="setting-partner-name" name="partnerName" maxlength="24" required placeholder="例如：阿岚" />
+            </label>
+          </div>
+          <label>
+            <span>欢迎语</span>
+            <input id="setting-welcome-text" name="welcomeText" maxlength="80" required placeholder="把喜欢的句子，留在同一页里。" />
+          </label>
+          <div class="settings-actions">
+            <button id="settings-cancel" class="secondary-button" type="button">取消</button>
+            <button class="primary-button" type="submit">保存并进入</button>
+          </div>
+        </form>
+      </section>
+    </aside>
+    <script type="module" src="/reader.js?v=public-v1"></script>
+  </body>
+</html>
