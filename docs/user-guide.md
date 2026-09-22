@@ -20,7 +20,7 @@ Requirements:
 - Python 3.10+
 
 ```bash
-git clone https://github.com/idleprocesscc/co-reading-mcp.git
+git clone https://github.com/linlinq040-del/co-reading-mcp-public.git
 cd co-reading-mcp
 cp -R data.example data
 npm run reader
@@ -92,7 +92,11 @@ URLs:
 - `https://your-domain.example/sse` for MCP SSE
 - `https://your-domain.example/mcp` for JSON-RPC over POST
 
-When `MCP_AUTH_TOKEN` is set, the reader, static files, `/api/*`, `/sse`, `/messages`, `/mcp`, and `/health` require the token. Open the reader once with `?token=...`; the server sets a same-site cookie, and the reader stores the token in local storage before removing it from the address bar.
+When `MCP_AUTH_TOKEN` is set, the reader, protected static files, `/api/*`, `/sse`, `/messages`, `/mcp`, and `/health` require the token. `/app-icon.png` remains public so browsers and app launchers can display the selected app icon. Open the reader once with `?token=...`; the server sets a same-site cookie, and the reader stores the token in local storage before removing it from the address bar.
+
+## Customize the App Icon
+
+Open the reader settings, choose an image under **App icon**, and save. The browser center-crops the image to a 512 × 512 PNG, stores it in the persistent data directory, and refreshes the favicon URL so compatible launchers can pick up the new image. Use **Restore default** to return to the bundled public-edition icon.
 
 ## Human Notes
 
