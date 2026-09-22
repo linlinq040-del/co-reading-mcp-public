@@ -20,6 +20,7 @@ import {
   readBookCover,
   readCard,
   readChunk,
+  readCustomAppIcon,
   repairAnnotationAnchor,
   renameBook,
   replyToAnnotation,
@@ -27,6 +28,8 @@ import {
   saveReadingPosition,
   submitUserNotes,
   updateRoomConfig,
+  resetCustomAppIcon,
+  saveCustomAppIcon,
 } from "./store.js";
 import { importBook } from "./importer.js";
 import { renderCardPng, renderCardSvg } from "./card-renderer.js";
@@ -94,6 +97,15 @@ export async function handleApi(req, res, url, options = {}) {
 
   if (req.method === "PUT" && parts.length === 2 && parts[1] === "config") {
     return sendJson(res, 200, await updateRoomConfig(await readBody(req, { maxBytes: Math.min(maxBytes, 16_384) })));
+  }
+
+  if (req.method === "PUT" && parts.length === 2 && parts[1] === "app-icon") {
+    const body = await readBody(req, { maxBytes: Math.min(maxBytes, 3_000_000) });
+    return sendJson(res, 200, await saveCustomAppIcon(body.dataUrl));
+  }
+
+  if (req.method === "DELETE" && parts.length === 2 && parts[1] === "app-icon") {
+    return sendJson(res, 200, await resetCustomAppIcon());
   }
 
   if (req.method === "GET" && parts.length === 2 && parts[1] === "books") {
@@ -298,4 +310,14 @@ export async function serveStatic(req, res, url) {
     if (error.code === "ENOENT") return sendError(res, 404, "Not found");
     throw error;
   }
+}
+
+export async function serveAppIcon(req, res) {
+  const custom = await readCustomAppIcon();
+  const body = custom || (await readFile(path.join(publicDir, "app-icon.png")));
+  res.writeHead(200, {
+    "content-type": "image/png",
+    "cache-control": "public, max-age=300",
+  });
+  res.end(body);
 }

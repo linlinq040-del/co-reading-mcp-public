@@ -4,7 +4,7 @@ import crypto from "node:crypto";
 import { fileURLToPath } from "node:url";
 import { dataDir } from "./store.js";
 import { handle } from "./server.js";
-import { handleApi, readBody, sendError, sendJson, serveStatic } from "./http-routes.js";
+import { handleApi, readBody, sendError, sendJson, serveAppIcon, serveStatic } from "./http-routes.js";
 
 const port = Number(process.env.MCP_SSE_PORT || process.env.PORT || 3100);
 const host = process.env.MCP_SSE_HOST || "0.0.0.0";
@@ -122,6 +122,10 @@ async function route(req, res) {
   ) {
     sendJson(res, 200, mcpResourceMetadata(req));
     return;
+  }
+
+  if (req.method === "GET" && url.pathname === "/app-icon.png") {
+    return serveAppIcon(req, res);
   }
 
   const protectedRoute =

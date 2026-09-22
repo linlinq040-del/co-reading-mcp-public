@@ -17,6 +17,7 @@ const cardsPath = path.join(dataDir, "cards.jsonl");
 const progressPath = path.join(dataDir, "progress.json");
 const sessionsPath = path.join(dataDir, "reading_sessions.json");
 const roomConfigPath = path.join(dataDir, "room-config.json");
+const appIconPath = path.join(dataDir, "app-icon.png");
 const trashDir = path.join(dataDir, "trash");
 const defaultTrashRetentionDays = 30;
 
@@ -92,6 +93,8 @@ const roomConfigDefaults = Object.freeze({
   readerName: "我",
   partnerName: "共读伙伴",
   welcomeText: "把喜欢的句子，留在同一页里。",
+  customAppIcon: false,
+  appIconVersion: "default",
 });
 
 function cleanRoomText(value, fallback, maxLength = 48) {
@@ -106,6 +109,8 @@ function normalizeRoomConfig(input = {}, current = roomConfigDefaults) {
     readerName: cleanRoomText(input.readerName, current.readerName, 24),
     partnerName: cleanRoomText(input.partnerName, current.partnerName, 24),
     welcomeText: cleanRoomText(input.welcomeText, current.welcomeText, 80),
+    customAppIcon: Boolean(input.customAppIcon ?? current.customAppIcon),
+    appIconVersion: cleanRoomText(input.appIconVersion, current.appIconVersion, 64),
   };
 }
 
@@ -117,6 +122,59 @@ export async function updateRoomConfig(input = {}) {
   return withWriteLock(async () => {
     const current = await getRoomConfig();
     const next = normalizeRoomConfig({ ...input, configured: true }, current);
+    await writeJson(roomConfigPath, next);
+    return next;
+  });
+}
+
+export async function readCustomAppIcon() {
+  try {
+    return await readFile(appIconPath);
+  } catch (error) {
+    if (error.code === "ENOENT") return null;
+    throw error;
+  }
+}
+
+export async function saveCustomAppIcon(dataUrl) {
+  return withWriteLock(async () => {
+    const match = /^data:image\/png;base64,([A-Za-z0-9+/=\r\n]+)$/i.exec(String(dataUrl || ""));
+    if (!match) {
+      const error = new Error("App icon must be a PNG image");
+      error.statusCode = 400;
+      throw error;
+    }
+    const body = Buffer.from(match[1], "base64");
+    if (body.length < 8 || !body.subarray(0, 8).equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]))) {
+      const error = new Error("Invalid PNG app icon");
+      error.statusCode = 400;
+      throw error;
+    }
+    if (body.length > 2_000_000) {
+      const error = new Error("App icon must be smaller than 2 MB");
+      error.statusCode = 413;
+      throw error;
+    }
+    await mkdir(dataDir, { recursive: true });
+    await writeFile(appIconPath, body);
+    const current = await getRoomConfig();
+    const next = normalizeRoomConfig(
+      { ...current, customAppIcon: true, appIconVersion: Date.now().toString(36) },
+      current,
+    );
+    await writeJson(roomConfigPath, next);
+    return next;
+  });
+}
+
+export async function resetCustomAppIcon() {
+  return withWriteLock(async () => {
+    await rm(appIconPath, { force: true });
+    const current = await getRoomConfig();
+    const next = normalizeRoomConfig(
+      { ...current, customAppIcon: false, appIconVersion: `default-${Date.now().toString(36)}` },
+      current,
+    );
     await writeJson(roomConfigPath, next);
     return next;
   });
